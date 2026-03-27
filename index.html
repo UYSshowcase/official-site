@@ -4,9 +4,64 @@
   <meta charset="utf-8">
   <title>UYSshowcase</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="UYSshowcase official website coming soon.">
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --sub: #666666;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 960px;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .logo {
+      display: block;
+      width: min(560px, 78vw);
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto 32px;
+    }
+
+    .coming-soon {
+      margin: 0;
+      font-size: clamp(16px, 2vw, 22px);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--sub);
+    }
+  </style>
 </head>
 <body>
-  <h1>UYSshowcase</h1>
-  <p>Official website coming soon.</p>
+  <main class="wrap">
+    <img src="assets/openrogo.png" alt="UYSshowcase logo" class="logo">
+    <p class="coming-soon">COMING SOON</p>
+  </main>
 </body>
 </html>
