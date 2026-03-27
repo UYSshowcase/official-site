@@ -8,9 +8,15 @@
 
   <style>
     :root {
-      --bg: #ffffff;
-      --text: #111111;
-      --sub: #666666;
+      --bg: #050505;
+      --bg-soft: #0d0d0d;
+      --text: #f5f2eb;
+      --muted: #cfc7bb;
+      --sub: #a79f93;
+      --line: rgba(212, 181, 109, 0.34);
+      --gold: #d4b56d;
+      --gold-soft: rgba(212, 181, 109, 0.14);
+      --shadow: rgba(0, 0, 0, 0.45);
     }
 
     * {
@@ -22,46 +28,270 @@
       padding: 0;
       width: 100%;
       min-height: 100%;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at top, rgba(212, 181, 109, 0.08), transparent 34%),
+        linear-gradient(180deg, #0a0a0a 0%, #050505 42%, #030303 100%);
       color: var(--text);
-      font-family: Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      font-family:
+        "Hiragino Mincho ProN",
+        "Yu Mincho",
+        "YuMincho",
+        "Times New Roman",
+        serif;
     }
 
     body {
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .wrap {
       width: 100%;
-      max-width: 960px;
-      padding: 40px 24px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+    }
+
+    .panel {
+      width: min(1280px, 100%);
+      min-height: calc(100vh - 64px);
+      border: 1px solid rgba(212, 181, 109, 0.18);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.015) 0%, rgba(255,255,255,0.005) 100%);
+      box-shadow:
+        0 20px 60px var(--shadow),
+        inset 0 0 0 1px rgba(255,255,255,0.02);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 42px 42px 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border: 1px solid rgba(212, 181, 109, 0.08);
+      pointer-events: none;
+    }
+
+    .top-copy {
       text-align: center;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow-wrap::before,
+    .eyebrow-wrap::after {
+      content: "";
+      width: min(12vw, 120px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0.85;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 16px;
+      border: 1px solid rgba(212, 181, 109, 0.28);
+      background: rgba(212, 181, 109, 0.05);
+      color: var(--gold);
+      font-size: clamp(11px, 1.1vw, 14px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .date-line {
+      margin: 0 0 14px;
+      font-size: clamp(13px, 1.3vw, 18px);
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .lead-title {
+      margin: 0;
+      font-size: clamp(28px, 4.2vw, 60px);
+      font-weight: 400;
+      line-height: 1.18;
+      letter-spacing: 0.06em;
+      color: var(--text);
+      text-shadow: 0 0 18px rgba(212, 181, 109, 0.06);
+    }
+
+    .jp-title {
+      margin: 14px 0 0;
+      font-size: clamp(14px, 1.8vw, 24px);
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      line-height: 1.8;
+      color: var(--gold);
+    }
+
+    .logo-section {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-frame {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.03), rgba(255,255,255,0.00) 62%);
     }
 
     .logo {
       display: block;
-      width: min(560px, 78vw);
+      width: min(1400px, 98vw);
       max-width: 100%;
+      max-height: 46vh;
       height: auto;
-      margin: 0 auto 32px;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 0 18px rgba(255,255,255,0.05))
+        drop-shadow(0 10px 28px rgba(0,0,0,0.48));
+      mix-blend-mode: screen;
+      opacity: 0.96;
+    }
+
+    .message {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .message p {
+      margin: 0;
+      font-size: clamp(14px, 1.45vw, 21px);
+      line-height: 2.1;
+      letter-spacing: 0.06em;
+      color: var(--muted);
     }
 
     .coming-soon {
-      margin: 0;
-      font-size: clamp(16px, 2vw, 22px);
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      margin-top: 22px;
+      text-align: center;
+      font-size: clamp(12px, 1.2vw, 16px);
+      letter-spacing: 0.38em;
       color: var(--sub);
+    }
+
+    @media (max-width: 900px) {
+      .panel {
+        padding: 30px 20px 26px;
+      }
+
+      .panel::before {
+        inset: 10px;
+      }
+
+      .eyebrow-wrap {
+        gap: 10px;
+      }
+
+      .eyebrow-wrap::before,
+      .eyebrow-wrap::after {
+        width: 44px;
+      }
+
+      .logo {
+        max-height: 34vh;
+      }
+
+      .message p {
+        line-height: 1.9;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding: 10px;
+      }
+
+      .panel {
+        min-height: calc(100vh - 20px);
+        padding: 24px 16px 20px;
+      }
+
+      .date-line {
+        letter-spacing: 0.1em;
+      }
+
+      .lead-title {
+        line-height: 1.28;
+      }
+
+      .jp-title {
+        letter-spacing: 0.08em;
+      }
+
+      .logo-frame {
+        padding: 10px 0;
+      }
+
+      .logo {
+        width: 100%;
+        max-height: 30vh;
+      }
+
+      .message p {
+        font-size: 14px;
+        line-height: 1.85;
+      }
+
+      .coming-soon {
+        letter-spacing: 0.24em;
+      }
     }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <img src="assets/openrogo.png" alt="UYSshowcase logo" class="logo">
-    <p class="coming-soon">COMING SOON</p>
+    <section class="panel">
+      <div class="top-copy">
+        <div class="eyebrow-wrap">
+          <div class="eyebrow">NEW PERFORMANCE COLLECTIVE</div>
+        </div>
+
+        <p class="date-line">2026.4.6　春日部に新しいダンスパフォーマンス集団が誕生</p>
+
+        <h1 class="lead-title">unite your smiles</h1>
+        <p class="jp-title">みんなの笑顔をひとつに</p>
+      </div>
+
+      <div class="logo-section">
+        <div class="logo-frame">
+          <img src="assets/openrogo.png" alt="UYSshowcase logo" class="logo">
+        </div>
+      </div>
+
+      <div class="message">
+        <p>踊り手だけでなく、観てくださる皆様を笑顔にできるショー集団へ</p>
+        <div class="coming-soon">COMING SOON</div>
+      </div>
+    </section>
   </main>
 </body>
 </html>
