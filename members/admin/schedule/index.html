@@ -110,8 +110,7 @@
     }
 
     input[type="text"],
-    input[type="date"],
-    input[type="time"],
+    select,
     textarea {
       width: 100%;
       padding: 12px;
@@ -125,7 +124,14 @@
       appearance: none;
     }
 
-    input:focus, textarea:focus {
+    select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%23d4b56d' d='M6 8L0 0h12z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--gold);
       box-shadow: 0 0 0 2px rgba(212, 181, 109, 0.18);
@@ -133,11 +139,104 @@
 
     textarea { resize: vertical; }
 
-    .time-row {
+    /* 時刻セレクト */
+    .time-selects {
       display: flex;
-      gap: 12px;
+      align-items: center;
+      gap: 8px;
     }
-    .time-row > div { flex: 1; }
+    .time-selects select {
+      flex: 1;
+      text-align: center;
+    }
+    .time-selects .sep {
+      color: var(--gold);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .time-range-sep {
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 0 4px;
+    }
+
+    /* カスタムカレンダー */
+    .calendar {
+      background: #0a080e;
+      border: 1px solid rgba(212, 181, 109, 0.25);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .cal-title {
+      font-size: 1rem;
+      color: var(--text);
+      letter-spacing: 0.05em;
+    }
+    .cal-nav-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid rgba(212, 181, 109, 0.3);
+      background: transparent;
+      color: var(--gold);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+    .cal-cell {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+    }
+    .cal-cell.header {
+      cursor: default;
+      color: var(--sub);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+    }
+    .cal-cell.header.sun { color: #c77878; }
+    .cal-cell.header.sat { color: #6f90c5; }
+    .cal-cell.other-month {
+      color: rgba(255, 255, 255, 0.15);
+    }
+    .cal-cell.sun { color: #e88a8a; }
+    .cal-cell.sat { color: #8ab0e8; }
+    .cal-cell.today {
+      outline: 1px dashed rgba(212, 181, 109, 0.5);
+    }
+    .cal-cell:hover:not(.header):not(.other-month) {
+      background: rgba(212, 181, 109, 0.08);
+    }
+    .cal-cell.selected {
+      background: var(--gold);
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+    .cal-selected-label {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+    }
 
     .team-grid {
       display: grid;
@@ -280,19 +379,37 @@
       </div>
 
       <div class="field">
-        <label for="date">日付 <span class="req">必須</span></label>
-        <input type="date" id="date" name="date" required>
+        <label>日付 <span class="req">必須</span></label>
+        <div class="calendar" id="calendar">
+          <div class="cal-header">
+            <button type="button" class="cal-nav-btn" id="cal-prev" aria-label="前月">←</button>
+            <div class="cal-title" id="cal-title">―</div>
+            <button type="button" class="cal-nav-btn" id="cal-next" aria-label="次月">→</button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div class="cal-selected-label" id="cal-selected">未選択</div>
+        </div>
+        <input type="hidden" id="date" name="date">
       </div>
 
       <div class="field">
         <label>時刻</label>
-        <div class="time-row">
-          <div>
-            <input type="time" id="startTime" name="startTime" placeholder="開始">
-          </div>
-          <div>
-            <input type="time" id="endTime" name="endTime" placeholder="終了">
-          </div>
+        <div class="time-selects">
+          <select id="startHour" aria-label="開始時">
+            <option value="">--</option>
+          </select>
+          <span class="sep">:</span>
+          <select id="startMinute" aria-label="開始分">
+            <option value="">--</option>
+          </select>
+          <span class="time-range-sep">〜</span>
+          <select id="endHour" aria-label="終了時">
+            <option value="">--</option>
+          </select>
+          <span class="sep">:</span>
+          <select id="endMinute" aria-label="終了分">
+            <option value="">--</option>
+          </select>
         </div>
         <p class="hint">空欄の場合は「終日」として表示されます。</p>
       </div>
@@ -341,14 +458,123 @@
     const successMsg = document.getElementById('success-msg');
     const resetBtn = document.getElementById('reset-btn');
 
-    // デフォルト日付を当日に
-    (function () {
-      const d = new Date();
-      const iso = d.getFullYear() + '-' +
+    // --- カレンダー ---
+    const calState = {
+      viewYear: new Date().getFullYear(),
+      viewMonth: new Date().getMonth() + 1,
+      selected: toISODate(new Date()),
+    };
+    function toISODate(d) {
+      return d.getFullYear() + '-' +
         String(d.getMonth() + 1).padStart(2, '0') + '-' +
         String(d.getDate()).padStart(2, '0');
+    }
+    function renderCalendar() {
+      const year = calState.viewYear;
+      const month = calState.viewMonth;
+      document.getElementById('cal-title').textContent = year + '年' + month + '月';
+      const grid = document.getElementById('cal-grid');
+      grid.innerHTML = '';
+      const wdNames = ['日', '月', '火', '水', '木', '金', '土'];
+      wdNames.forEach(function (w, i) {
+        const h = document.createElement('div');
+        h.className = 'cal-cell header' + (i === 0 ? ' sun' : i === 6 ? ' sat' : '');
+        h.textContent = w;
+        grid.appendChild(h);
+      });
+      const firstDay = new Date(year, month - 1, 1);
+      const startWd = firstDay.getDay();
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const prevDays = new Date(year, month - 1, 0).getDate();
+      const todayIso = toISODate(new Date());
+
+      for (let i = 0; i < startWd; i++) {
+        const n = prevDays - startWd + i + 1;
+        const c = document.createElement('button');
+        c.type = 'button';
+        c.className = 'cal-cell other-month';
+        c.textContent = n;
+        c.disabled = true;
+        grid.appendChild(c);
+      }
+      for (let d = 1; d <= daysInMonth; d++) {
+        const iso = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        const wd = new Date(year, month - 1, d).getDay();
+        const c = document.createElement('button');
+        c.type = 'button';
+        c.className = 'cal-cell' + (wd === 0 ? ' sun' : wd === 6 ? ' sat' : '') +
+          (iso === todayIso ? ' today' : '') +
+          (iso === calState.selected ? ' selected' : '');
+        c.textContent = d;
+        c.addEventListener('click', function () { selectDate(iso); });
+        grid.appendChild(c);
+      }
+      const totalCells = startWd + daysInMonth;
+      const remain = (7 - (totalCells % 7)) % 7;
+      for (let i = 0; i < remain; i++) {
+        const c = document.createElement('button');
+        c.type = 'button';
+        c.className = 'cal-cell other-month';
+        c.textContent = i + 1;
+        c.disabled = true;
+        grid.appendChild(c);
+      }
+      updateSelectedLabel();
+    }
+    function selectDate(iso) {
+      calState.selected = iso;
       document.getElementById('date').value = iso;
+      renderCalendar();
+    }
+    function updateSelectedLabel() {
+      const iso = calState.selected;
+      const d = new Date(iso + 'T00:00:00');
+      const wdNames = ['日', '月', '火', '水', '木', '金', '土'];
+      document.getElementById('cal-selected').textContent =
+        iso ? (d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 (' + wdNames[d.getDay()] + ')') : '未選択';
+    }
+    document.getElementById('cal-prev').addEventListener('click', function () {
+      if (calState.viewMonth === 1) { calState.viewYear--; calState.viewMonth = 12; }
+      else calState.viewMonth--;
+      renderCalendar();
+    });
+    document.getElementById('cal-next').addEventListener('click', function () {
+      if (calState.viewMonth === 12) { calState.viewYear++; calState.viewMonth = 1; }
+      else calState.viewMonth++;
+      renderCalendar();
+    });
+    // 初期値を当日に
+    document.getElementById('date').value = calState.selected;
+    renderCalendar();
+
+    // --- 時刻セレクト ---
+    (function () {
+      const hSels = [document.getElementById('startHour'), document.getElementById('endHour')];
+      const mSels = [document.getElementById('startMinute'), document.getElementById('endMinute')];
+      for (let h = 0; h <= 23; h++) {
+        const hh = String(h).padStart(2, '0');
+        hSels.forEach(function (sel) {
+          const o = document.createElement('option');
+          o.value = hh; o.textContent = hh;
+          sel.appendChild(o);
+        });
+      }
+      for (let m = 0; m < 60; m += 5) {
+        const mm = String(m).padStart(2, '0');
+        mSels.forEach(function (sel) {
+          const o = document.createElement('option');
+          o.value = mm; o.textContent = mm;
+          sel.appendChild(o);
+        });
+      }
     })();
+    function readTime(hId, mId) {
+      const h = document.getElementById(hId).value;
+      const m = document.getElementById(mId).value;
+      if (!h && !m) return '';
+      if (h && m) return h + ':' + m;
+      return ''; // どちらか欠けていたら未設定扱い
+    }
 
     // 登録者名の記憶
     const savedRegistrar = localStorage.getItem('uys.schedule.registrar');
@@ -364,8 +590,8 @@
       const teams = Array.from(document.querySelectorAll('input[name="team"]:checked'))
         .map(function (el) { return el.value; });
       const date = document.getElementById('date').value;
-      const startTime = document.getElementById('startTime').value;
-      const endTime = document.getElementById('endTime').value;
+      const startTime = readTime('startHour', 'startMinute');
+      const endTime = readTime('endHour', 'endMinute');
       const title = document.getElementById('title').value.trim();
       const location = document.getElementById('location').value.trim();
       const memo = document.getElementById('memo').value.trim();
@@ -433,11 +659,17 @@
 
     function resetToForm() {
       form.reset();
-      // デフォルト日付再設定
-      const d = new Date();
-      document.getElementById('date').value = d.getFullYear() + '-' +
-        String(d.getMonth() + 1).padStart(2, '0') + '-' +
-        String(d.getDate()).padStart(2, '0');
+      // カレンダー・日付を当日に戻す
+      const today = new Date();
+      calState.viewYear = today.getFullYear();
+      calState.viewMonth = today.getMonth() + 1;
+      calState.selected = toISODate(today);
+      document.getElementById('date').value = calState.selected;
+      renderCalendar();
+      // 時刻セレクトを空に
+      ['startHour', 'startMinute', 'endHour', 'endMinute'].forEach(function (id) {
+        document.getElementById(id).value = '';
+      });
       // 登録者は残す
       const r = localStorage.getItem('uys.schedule.registrar');
       if (r) document.getElementById('registrar').value = r;
