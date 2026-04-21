@@ -139,76 +139,142 @@
 
     textarea { resize: vertical; }
 
-    /* 時刻スライダー */
-    .time-row {
-      display: flex;
+    /* 時刻ドラムピッカー */
+    .all-day-toggle {
+      display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 8px;
+      padding: 8px 14px;
+      background: #0a080e;
+      border: 1px solid rgba(212, 181, 109, 0.2);
+      border-radius: 999px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      cursor: pointer;
+      margin-bottom: 12px;
+      -webkit-user-select: none;
+      user-select: none;
     }
-    .time-row:last-child { margin-bottom: 0; }
+    .all-day-toggle input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--gold);
+      margin: 0;
+    }
+    .all-day-toggle:has(input:checked) {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .wheel-group.disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .wheel-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .wheel-row:last-child { margin-bottom: 0; }
     .time-label {
       width: 44px;
       font-size: 0.85rem;
       color: var(--sub);
       letter-spacing: 0.08em;
-    }
-    .time-step {
-      width: 44px;
-      height: 44px;
-      border-radius: 8px;
-      border: 1px solid rgba(212, 181, 109, 0.3);
-      background: #0a080e;
-      color: var(--gold);
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
       flex-shrink: 0;
-      -webkit-user-select: none;
-      user-select: none;
     }
-    .time-step:active {
-      background: var(--gold-soft);
-    }
-    .time-display {
+
+    .wheel-time {
       flex: 1;
       min-width: 0;
-      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 4px;
       background: #0a080e;
       border: 1px solid rgba(212, 181, 109, 0.25);
-      border-radius: 8px;
-      color: var(--text);
+      border-radius: 10px;
+      padding: 4px 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* 中央ハイライトバンド */
+    .wheel-time::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 40px;
+      background: rgba(212, 181, 109, 0.12);
+      border-top: 1px solid rgba(212, 181, 109, 0.5);
+      border-bottom: 1px solid rgba(212, 181, 109, 0.5);
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* 上下フェード */
+    .wheel-time::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg,
+          #0a080e 0%,
+          rgba(10, 8, 14, 0.0) 28%,
+          rgba(10, 8, 14, 0.0) 72%,
+          #0a080e 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .wheel {
+      width: 64px;
+      height: 120px; /* 40px * 3 */
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      position: relative;
+      z-index: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+    .wheel::-webkit-scrollbar { display: none; }
+    .wheel ul {
+      margin: 0;
+      padding: 40px 0; /* 上下に1アイテム分のスペーサー */
+      list-style: none;
+    }
+    .wheel li {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 1.15rem;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      font-variant-numeric: tabular-nums;
-      touch-action: pan-x;
-      cursor: ns-resize;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    .time-display.empty {
       color: var(--sub);
-      font-size: 0.9rem;
-      letter-spacing: 0.05em;
-    }
-    .time-display.dragging {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 2px rgba(212, 181, 109, 0.18);
-    }
-    .time-clear {
-      width: 36px;
-      height: 44px;
-      border-radius: 8px;
-      border: 1px solid rgba(212, 181, 109, 0.2);
-      background: transparent;
-      color: var(--sub);
-      font-size: 1rem;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
       cursor: pointer;
-      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
+      transition: color 0.12s;
+    }
+    .wheel li.active {
+      color: var(--gold);
+      font-weight: 600;
+      font-size: 1.25rem;
+    }
+
+    .wheel-sep {
+      color: var(--gold);
+      font-size: 1.2rem;
+      font-weight: 600;
+      z-index: 1;
+      padding: 0 2px;
     }
 
     /* カスタムカレンダー */
@@ -445,23 +511,30 @@
 
       <div class="field">
         <label>時刻</label>
-        <div class="time-row">
-          <span class="time-label">開始</span>
-          <button type="button" class="time-step" data-target="start" data-step="-15" aria-label="15分前">−</button>
-          <div class="time-display" id="startDisplay" data-target="start" tabindex="0">19:00</div>
-          <button type="button" class="time-step" data-target="start" data-step="15" aria-label="15分後">+</button>
-          <button type="button" class="time-clear" data-target="start" aria-label="クリア">×</button>
-        </div>
-        <div class="time-row">
-          <span class="time-label">終了</span>
-          <button type="button" class="time-step" data-target="end" data-step="-15" aria-label="15分前">−</button>
-          <div class="time-display empty" id="endDisplay" data-target="end" tabindex="0">未設定</div>
-          <button type="button" class="time-step" data-target="end" data-step="15" aria-label="15分後">+</button>
-          <button type="button" class="time-clear" data-target="end" aria-label="クリア">×</button>
+        <label class="all-day-toggle">
+          <input type="checkbox" id="all-day"> 終日(時刻指定なし)
+        </label>
+        <div class="wheel-group" id="wheel-group">
+          <div class="wheel-row">
+            <span class="time-label">開始</span>
+            <div class="wheel-time">
+              <div class="wheel" data-target="start" data-kind="hour"></div>
+              <span class="wheel-sep">:</span>
+              <div class="wheel" data-target="start" data-kind="minute"></div>
+            </div>
+          </div>
+          <div class="wheel-row">
+            <span class="time-label">終了</span>
+            <div class="wheel-time">
+              <div class="wheel" data-target="end" data-kind="hour"></div>
+              <span class="wheel-sep">:</span>
+              <div class="wheel" data-target="end" data-kind="minute"></div>
+            </div>
+          </div>
         </div>
         <input type="hidden" id="startTime" name="startTime" value="19:00">
-        <input type="hidden" id="endTime" name="endTime" value="">
-        <p class="hint">±ボタン or ドラッグ(上下)で15分単位で調整。×で未設定に。終日は両方未設定。</p>
+        <input type="hidden" id="endTime" name="endTime" value="21:00">
+        <p class="hint">上下にスワイプして時刻を選択。</p>
       </div>
 
       <div class="field">
@@ -597,118 +670,125 @@
     document.getElementById('date').value = calState.selected;
     renderCalendar();
 
-    // --- 時刻スライダー ---
-    const DEFAULT_START_MIN = 19 * 60; // 19:00
-    const STEP = 15;
-    const MAX_MIN = 23 * 60 + 45;
-    const timeState = { start: DEFAULT_START_MIN, end: null };
+    // --- 時刻ドラムピッカー ---
+    const ITEM_H = 40;
+    const HOURS = Array.from({ length: 24 }, function (_, i) { return String(i).padStart(2, '0'); });
+    const MINUTES = [];
+    for (let m = 0; m < 60; m += 5) MINUTES.push(String(m).padStart(2, '0'));
 
-    function formatMin(m) {
-      return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+    const timeState = {
+      start: { hour: '19', minute: '00' },
+      end: { hour: '21', minute: '00' },
+      allDay: false,
+    };
+
+    function buildWheel(wheel) {
+      const kind = wheel.dataset.kind;
+      const values = kind === 'hour' ? HOURS : MINUTES;
+      const ul = document.createElement('ul');
+      values.forEach(function (v) {
+        const li = document.createElement('li');
+        li.textContent = v;
+        li.dataset.value = v;
+        li.addEventListener('click', function () {
+          scrollToValue(wheel, v, true);
+        });
+        ul.appendChild(li);
+      });
+      wheel.innerHTML = '';
+      wheel.appendChild(ul);
     }
-    function renderTime(target) {
-      const disp = document.getElementById(target + 'Display');
-      const hid = document.getElementById(target + 'Time');
-      const v = timeState[target];
-      if (v == null) {
-        disp.textContent = '未設定';
-        disp.classList.add('empty');
-        hid.value = '';
+
+    function indexOfValue(wheel, value) {
+      const values = wheel.dataset.kind === 'hour' ? HOURS : MINUTES;
+      const i = values.indexOf(value);
+      return i < 0 ? 0 : i;
+    }
+
+    function scrollToValue(wheel, value, smooth) {
+      const idx = indexOfValue(wheel, value);
+      wheel.scrollTo({ top: idx * ITEM_H, behavior: smooth ? 'smooth' : 'auto' });
+      highlightWheel(wheel, idx);
+    }
+
+    function highlightWheel(wheel, idx) {
+      const items = wheel.querySelectorAll('li');
+      items.forEach(function (li, i) {
+        li.classList.toggle('active', i === idx);
+      });
+    }
+
+    function currentIndex(wheel) {
+      return Math.round(wheel.scrollTop / ITEM_H);
+    }
+
+    function currentValue(wheel) {
+      const values = wheel.dataset.kind === 'hour' ? HOURS : MINUTES;
+      const idx = Math.max(0, Math.min(values.length - 1, currentIndex(wheel)));
+      return values[idx];
+    }
+
+    function commitWheel(wheel) {
+      const target = wheel.dataset.target;
+      const kind = wheel.dataset.kind;
+      const v = currentValue(wheel);
+      timeState[target][kind] = v;
+      const idx = indexOfValue(wheel, v);
+      highlightWheel(wheel, idx);
+      // 位置ズレ補正
+      const exact = idx * ITEM_H;
+      if (Math.abs(wheel.scrollTop - exact) > 0.5) {
+        wheel.scrollTo({ top: exact, behavior: 'smooth' });
+      }
+      updateHiddenInputs();
+    }
+
+    function updateHiddenInputs() {
+      const s = timeState.start, e = timeState.end;
+      if (timeState.allDay) {
+        document.getElementById('startTime').value = '';
+        document.getElementById('endTime').value = '';
       } else {
-        disp.textContent = formatMin(v);
-        disp.classList.remove('empty');
-        hid.value = formatMin(v);
+        document.getElementById('startTime').value = s.hour + ':' + s.minute;
+        document.getElementById('endTime').value = e.hour + ':' + e.minute;
       }
     }
-    function stepTime(target, delta) {
-      let cur = timeState[target];
-      if (cur == null) cur = target === 'start' ? DEFAULT_START_MIN : (timeState.start != null ? timeState.start + 120 : DEFAULT_START_MIN + 120);
-      let next = cur + delta;
-      if (next < 0) next = 0;
-      if (next > MAX_MIN) next = MAX_MIN;
-      timeState[target] = next;
-      renderTime(target);
-    }
-    function clearTime(target) {
-      timeState[target] = null;
-      renderTime(target);
-    }
 
-    document.querySelectorAll('.time-step').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        stepTime(btn.dataset.target, Number(btn.dataset.step));
-      });
-    });
-    document.querySelectorAll('.time-clear').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        clearTime(btn.dataset.target);
+    const wheels = document.querySelectorAll('.wheel');
+    wheels.forEach(function (wheel) {
+      buildWheel(wheel);
+      const target = wheel.dataset.target;
+      const kind = wheel.dataset.kind;
+      scrollToValue(wheel, timeState[target][kind], false);
+
+      let settleTimer = null;
+      wheel.addEventListener('scroll', function () {
+        const idx = currentIndex(wheel);
+        highlightWheel(wheel, idx);
+        if (settleTimer) clearTimeout(settleTimer);
+        settleTimer = setTimeout(function () { commitWheel(wheel); }, 120);
       });
     });
 
-    // ドラッグ/スワイプで調整 (上下=±15分/20px、左右=±15分/20px どちらでも)
-    document.querySelectorAll('.time-display').forEach(function (disp) {
-      const target = disp.dataset.target;
-      let startY = null, startX = null, startVal = null, moved = false;
-      function onStart(y, x) {
-        if (timeState[target] == null) {
-          timeState[target] = target === 'start' ? DEFAULT_START_MIN : DEFAULT_START_MIN + 120;
-          renderTime(target);
-        }
-        startY = y; startX = x;
-        startVal = timeState[target];
-        moved = false;
-        disp.classList.add('dragging');
-      }
-      function onMove(y, x) {
-        if (startY == null) return;
-        const dy = startY - y;
-        const dx = x - startX;
-        const delta = Math.abs(dy) > Math.abs(dx) ? dy : dx;
-        const steps = Math.round(delta / 20);
-        if (steps === 0) return;
-        moved = true;
-        let next = startVal + steps * STEP;
-        if (next < 0) next = 0;
-        if (next > MAX_MIN) next = MAX_MIN;
-        timeState[target] = next;
-        renderTime(target);
-      }
-      function onEnd() {
-        startY = null; startX = null;
-        disp.classList.remove('dragging');
-      }
-      disp.addEventListener('touchstart', function (e) {
-        const t = e.touches[0]; onStart(t.clientY, t.clientX);
-      }, { passive: true });
-      disp.addEventListener('touchmove', function (e) {
-        const t = e.touches[0]; onMove(t.clientY, t.clientX);
-      }, { passive: true });
-      disp.addEventListener('touchend', onEnd);
-      disp.addEventListener('mousedown', function (e) {
-        onStart(e.clientY, e.clientX);
-        const mm = function (ev) { onMove(ev.clientY, ev.clientX); };
-        const mu = function () {
-          onEnd();
-          document.removeEventListener('mousemove', mm);
-          document.removeEventListener('mouseup', mu);
-        };
-        document.addEventListener('mousemove', mm);
-        document.addEventListener('mouseup', mu);
-      });
-      // ホイール対応
-      disp.addEventListener('wheel', function (e) {
-        e.preventDefault();
-        stepTime(target, e.deltaY < 0 ? STEP : -STEP);
-      }, { passive: false });
-      // キーボード
-      disp.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); stepTime(target, STEP); }
-        else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); stepTime(target, -STEP); }
+    // 初期化時にスクロール位置を確実に合わせる(Safari対策)
+    requestAnimationFrame(function () {
+      wheels.forEach(function (wheel) {
+        const target = wheel.dataset.target;
+        const kind = wheel.dataset.kind;
+        scrollToValue(wheel, timeState[target][kind], false);
       });
     });
 
-    renderTime('start');
-    renderTime('end');
+    // 終日トグル
+    const allDayChk = document.getElementById('all-day');
+    const wheelGroup = document.getElementById('wheel-group');
+    allDayChk.addEventListener('change', function () {
+      timeState.allDay = allDayChk.checked;
+      wheelGroup.classList.toggle('disabled', allDayChk.checked);
+      updateHiddenInputs();
+    });
+
+    updateHiddenInputs();
 
     // 登録者名の記憶
     const savedRegistrar = localStorage.getItem('uys.schedule.registrar');
@@ -801,10 +881,16 @@
       document.getElementById('date').value = calState.selected;
       renderCalendar();
       // 時刻をデフォルトに戻す
-      timeState.start = DEFAULT_START_MIN;
-      timeState.end = null;
-      renderTime('start');
-      renderTime('end');
+      timeState.start = { hour: '19', minute: '00' };
+      timeState.end = { hour: '21', minute: '00' };
+      timeState.allDay = false;
+      allDayChk.checked = false;
+      wheelGroup.classList.remove('disabled');
+      wheels.forEach(function (wheel) {
+        const t = wheel.dataset.target, k = wheel.dataset.kind;
+        scrollToValue(wheel, timeState[t][k], false);
+      });
+      updateHiddenInputs();
       // 登録者は残す
       const r = localStorage.getItem('uys.schedule.registrar');
       if (r) document.getElementById('registrar').value = r;
