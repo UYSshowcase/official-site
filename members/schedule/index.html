@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>予定 | UYSshowcase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    :root {
+      --bg: #050505;
+      --bg-soft: #0d0d0d;
+      --card: #131017;
+      --text: #f5f2eb;
+      --muted: #cfc7bb;
+      --sub: #a79f93;
+      --line: rgba(212, 181, 109, 0.34);
+      --gold: #d4b56d;
+      --gold-soft: rgba(212, 181, 109, 0.14);
+      --purple: #7a4cb3;
+      --purple-soft: rgba(122, 76, 179, 0.22);
+      --shadow: rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at top, rgba(212, 181, 109, 0.08), transparent 34%),
+        linear-gradient(180deg, #0a0a0a 0%, #050505 42%, #030303 100%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+                   "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+      -webkit-text-size-adjust: 100%;
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
+
+    .app-header {
+      text-align: center;
+      padding: 8px 0 16px;
+    }
+
+    .app-logo {
+      display: block;
+      width: 70%;
+      max-width: 260px;
+      height: auto;
+      margin: 0 auto 6px;
+    }
+
+    .app-header h1 {
+      margin: 6px 0 0;
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 12px 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--line);
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab {
+      flex: 0 0 auto;
+      padding: 10px 16px;
+      background: transparent;
+      border: 1px solid rgba(212, 181, 109, 0.25);
+      color: var(--muted);
+      border-radius: 999px;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .month-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      gap: 12px;
+    }
+
+    .month-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(212, 181, 109, 0.35);
+      background: transparent;
+      color: var(--gold);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .month-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .month-label {
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      color: var(--text);
+    }
+
+    .events {
+      margin-top: 8px;
+    }
+
+    .event-group {
+      margin-bottom: 20px;
+    }
+
+    .event-date {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(212, 181, 109, 0.18);
+      margin-bottom: 8px;
+    }
+    .event-date .day {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+    }
+    .event-date .weekday {
+      font-size: 0.9rem;
+      color: var(--sub);
+      letter-spacing: 0.1em;
+    }
+    .event-date.is-sun .day { color: #e88a8a; }
+    .event-date.is-sat .day { color: #8ab0e8; }
+
+    .event-card {
+      background: var(--card);
+      border: 1px solid rgba(212, 181, 109, 0.18);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 8px;
+    }
+
+    .event-time {
+      font-size: 0.88rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .event-title {
+      font-size: 1.05rem;
+      margin: 2px 0 6px;
+      color: var(--text);
+    }
+    .event-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 2px 0;
+    }
+    .event-meta .label {
+      color: var(--sub);
+      margin-right: 6px;
+    }
+
+    .team-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .team-chip {
+      font-size: 0.72rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--purple-soft);
+      color: var(--text);
+      border: 1px solid rgba(122, 76, 179, 0.4);
+      letter-spacing: 0.05em;
+    }
+    .team-chip.all {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--sub);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .error {
+      background: rgba(217, 48, 37, 0.15);
+      border: 1px solid rgba(217, 48, 37, 0.4);
+      color: #ffb4b0;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="app-header">
+      <img class="app-logo" src="/assets/logo.png" alt="UYSshowcase">
+      <h1>予定</h1>
+    </header>
+
+    <nav class="tabs" id="tabs"></nav>
+
+    <div class="month-nav">
+      <button class="month-btn" id="prev-month" aria-label="前月">←</button>
+      <div class="month-label" id="month-label">―</div>
+      <button class="month-btn" id="next-month" aria-label="次月">→</button>
+    </div>
+
+    <div id="content" class="events">
+      <div class="loading">読み込み中…</div>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx4YOxkoOk0A0nGLqcMKwL11ZUhxFdiy_wrlPgTasuuqClXIdNjFJxDoB4cXNawvW9x/exec';
+    const TEAMS = ['all', 'angel', 'fairy', 'bright', 'courage', 'glaze'];
+    const TEAM_LABELS = {
+      all: '全体',
+      angel: 'angel',
+      fairy: 'fairy',
+      bright: 'bright',
+      courage: 'courage',
+      glaze: 'glaze',
+    };
+
+    const state = {
+      team: 'all',
+      year: new Date().getFullYear(),
+      month: new Date().getMonth() + 1,
+    };
+
+    const savedTeam = localStorage.getItem('uys.schedule.team');
+    if (savedTeam && TEAMS.indexOf(savedTeam) !== -1) state.team = savedTeam;
+
+    function init() {
+      renderTabs();
+      bindMonthNav();
+      render();
+    }
+
+    function renderTabs() {
+      const el = document.getElementById('tabs');
+      el.innerHTML = '';
+      TEAMS.forEach(function (t) {
+        const btn = document.createElement('button');
+        btn.className = 'tab' + (t === state.team ? ' active' : '');
+        btn.textContent = TEAM_LABELS[t];
+        btn.addEventListener('click', function () {
+          state.team = t;
+          localStorage.setItem('uys.schedule.team', t);
+          renderTabs();
+          render();
+        });
+        el.appendChild(btn);
+      });
+    }
+
+    function bindMonthNav() {
+      document.getElementById('prev-month').addEventListener('click', function () {
+        if (state.month === 1) { state.year--; state.month = 12; }
+        else state.month--;
+        render();
+      });
+      document.getElementById('next-month').addEventListener('click', function () {
+        if (state.month === 12) { state.year++; state.month = 1; }
+        else state.month++;
+        render();
+      });
+    }
+
+    function render() {
+      document.getElementById('month-label').textContent = state.year + '年' + state.month + '月';
+      const content = document.getElementById('content');
+      content.innerHTML = '<div class="loading">読み込み中…</div>';
+      const url = API_URL + '?action=getSchedules&team=' + encodeURIComponent(state.team) +
+        '&year=' + state.year + '&month=' + state.month;
+      fetch(url)
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.error || '取得に失敗しました');
+          renderEvents(res.data || []);
+        })
+        .catch(function (err) {
+          content.innerHTML = '<div class="error">' + escapeHtml(err.message || String(err)) + '</div>';
+        });
+    }
+
+    function renderEvents(events) {
+      const content = document.getElementById('content');
+      if (!events.length) {
+        content.innerHTML = '<div class="empty">この月の予定はまだありません。</div>';
+        return;
+      }
+      const byDate = {};
+      events.forEach(function (ev) {
+        (byDate[ev.date] = byDate[ev.date] || []).push(ev);
+      });
+      const dates = Object.keys(byDate).sort();
+      content.innerHTML = dates.map(function (d) {
+        return renderGroup(d, byDate[d]);
+      }).join('');
+    }
+
+    function renderGroup(dateStr, events) {
+      const d = new Date(dateStr + 'T00:00:00');
+      const wdNames = ['日', '月', '火', '水', '木', '金', '土'];
+      const wd = d.getDay();
+      const dateCls = 'event-date' + (wd === 0 ? ' is-sun' : wd === 6 ? ' is-sat' : '');
+      const dayNum = d.getDate();
+      const dateHtml = '<div class="' + dateCls + '">' +
+        '<span class="day">' + dayNum + '</span>' +
+        '<span class="weekday">' + wdNames[wd] + '曜日</span>' +
+        '</div>';
+      const cardsHtml = events.map(renderCard).join('');
+      return '<div class="event-group">' + dateHtml + cardsHtml + '</div>';
+    }
+
+    function renderCard(ev) {
+      const time = (ev.startTime || ev.endTime)
+        ? (ev.startTime || '') + (ev.endTime ? ' - ' + ev.endTime : '')
+        : '終日';
+      const chips = (ev.teams && ev.teams.length)
+        ? ev.teams.map(function (t) {
+            const cls = (t === '全体') ? 'team-chip all' : 'team-chip';
+            return '<span class="' + cls + '">' + escapeHtml(t) + '</span>';
+          }).join('')
+        : '<span class="team-chip all">全体</span>';
+      const loc = ev.location
+        ? '<div class="event-meta"><span class="label">場所</span>' + escapeHtml(ev.location) + '</div>'
+        : '';
+      const memo = ev.memo
+        ? '<div class="event-meta"><span class="label">メモ</span>' + escapeHtml(ev.memo) + '</div>'
+        : '';
+      return '<div class="event-card">' +
+        '<div class="event-time">' + escapeHtml(time) + '</div>' +
+        '<div class="event-title">' + escapeHtml(ev.title) + '</div>' +
+        loc + memo +
+        '<div class="team-chips">' + chips + '</div>' +
+        '</div>';
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

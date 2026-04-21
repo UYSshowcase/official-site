@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>予定登録 | UYSshowcase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    :root {
+      --bg: #050505;
+      --card: #131017;
+      --text: #f5f2eb;
+      --muted: #cfc7bb;
+      --sub: #a79f93;
+      --line: rgba(212, 181, 109, 0.34);
+      --gold: #d4b56d;
+      --gold-soft: rgba(212, 181, 109, 0.14);
+      --purple: #7a4cb3;
+      --purple-soft: rgba(122, 76, 179, 0.22);
+      --error: #d93025;
+      --success: #1e8e3e;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at top, rgba(212, 181, 109, 0.08), transparent 34%),
+        linear-gradient(180deg, #0a0a0a 0%, #050505 42%, #030303 100%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+                   "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+      font-size: 16px;
+      -webkit-text-size-adjust: 100%;
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
+
+    .app-header {
+      text-align: center;
+      padding: 8px 0 16px;
+    }
+
+    .app-logo {
+      display: block;
+      width: 70%;
+      max-width: 240px;
+      height: auto;
+      margin: 0 auto 6px;
+    }
+
+    .app-header h1 {
+      margin: 6px 0 0;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+    }
+
+    .app-header .role {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 2px 10px;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      border: 1px solid var(--line);
+      color: var(--gold);
+      border-radius: 999px;
+    }
+
+    form {
+      background: var(--card);
+      border: 1px solid rgba(212, 181, 109, 0.18);
+      border-radius: 12px;
+      padding: 20px 16px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .req {
+      display: inline-block;
+      background: var(--gold);
+      color: #1a1a1a;
+      font-size: 0.65rem;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      font-weight: 600;
+      vertical-align: middle;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      background: #0a080e;
+      border: 1px solid rgba(212, 181, 109, 0.25);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212, 181, 109, 0.18);
+    }
+
+    textarea { resize: vertical; }
+
+    .time-row {
+      display: flex;
+      gap: 12px;
+    }
+    .time-row > div { flex: 1; }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .team-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #0a080e;
+      border: 1px solid rgba(212, 181, 109, 0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: var(--muted);
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .team-check input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--gold);
+      margin: 0;
+    }
+
+    .team-check:has(input:checked) {
+      background: var(--gold-soft);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .hint {
+      margin: 6px 0 0;
+      font-size: 0.82rem;
+      color: var(--sub);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--gold);
+      color: #1a1a1a;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      margin-top: 8px;
+    }
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .error-box {
+      background: rgba(217, 48, 37, 0.15);
+      border: 1px solid rgba(217, 48, 37, 0.4);
+      color: #ffb4b0;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+
+    .success-screen {
+      background: var(--card);
+      border: 1px solid rgba(212, 181, 109, 0.18);
+      border-radius: 12px;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      line-height: 64px;
+      border-radius: 50%;
+      background: var(--success);
+      color: #fff;
+      font-size: 2rem;
+      margin: 0 auto 16px;
+    }
+
+    .success-screen h2 {
+      margin: 0 0 6px;
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    .success-screen p {
+      margin: 0 0 24px;
+      color: var(--muted);
+    }
+
+    .success-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .secondary-btn {
+      padding: 10px 18px;
+      background: transparent;
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      color: var(--gold);
+      font-size: 0.95rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="app-header">
+      <img class="app-logo" src="/assets/logo.png" alt="UYSshowcase">
+      <h1>予定登録</h1>
+      <span class="role">運営</span>
+    </header>
+
+    <form id="schedule-form" novalidate>
+      <div id="error-box" class="error-box" hidden></div>
+
+      <div class="field">
+        <label>対象チーム <span class="req">必須</span></label>
+        <div class="team-grid">
+          <label class="team-check"><input type="checkbox" name="team" value="全体">全体</label>
+          <label class="team-check"><input type="checkbox" name="team" value="angel">angel</label>
+          <label class="team-check"><input type="checkbox" name="team" value="fairy">fairy</label>
+          <label class="team-check"><input type="checkbox" name="team" value="bright">bright</label>
+          <label class="team-check"><input type="checkbox" name="team" value="courage">courage</label>
+          <label class="team-check"><input type="checkbox" name="team" value="glaze">glaze</label>
+        </div>
+        <p class="hint">全体を選択 or 何も選択しない → 全チーム表示。複数選択可(合同練習等)。</p>
+      </div>
+
+      <div class="field">
+        <label for="date">日付 <span class="req">必須</span></label>
+        <input type="date" id="date" name="date" required>
+      </div>
+
+      <div class="field">
+        <label>時刻</label>
+        <div class="time-row">
+          <div>
+            <input type="time" id="startTime" name="startTime" placeholder="開始">
+          </div>
+          <div>
+            <input type="time" id="endTime" name="endTime" placeholder="終了">
+          </div>
+        </div>
+        <p class="hint">空欄の場合は「終日」として表示されます。</p>
+      </div>
+
+      <div class="field">
+        <label for="title">タイトル <span class="req">必須</span></label>
+        <input type="text" id="title" name="title" placeholder="例: 練習" required>
+      </div>
+
+      <div class="field">
+        <label for="location">場所</label>
+        <input type="text" id="location" name="location" placeholder="例: 市民体育館">
+      </div>
+
+      <div class="field">
+        <label for="memo">メモ</label>
+        <textarea id="memo" name="memo" rows="3" placeholder="例: 衣装持参"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="registrar">登録者</label>
+        <input type="text" id="registrar" name="registrar" placeholder="お名前(任意)">
+      </div>
+
+      <button type="submit" id="submit-btn" class="submit-btn">登録する</button>
+    </form>
+
+    <div id="success" class="success-screen" hidden>
+      <div class="success-icon">✓</div>
+      <h2>登録しました</h2>
+      <p id="success-msg"></p>
+      <div class="success-actions">
+        <button type="button" id="reset-btn" class="secondary-btn">続けて登録</button>
+        <a href="../../schedule/" class="secondary-btn" style="text-decoration:none;display:inline-block;">予定一覧を見る</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx4YOxkoOk0A0nGLqcMKwL11ZUhxFdiy_wrlPgTasuuqClXIdNjFJxDoB4cXNawvW9x/exec';
+
+    const form = document.getElementById('schedule-form');
+    const errorBox = document.getElementById('error-box');
+    const submitBtn = document.getElementById('submit-btn');
+    const success = document.getElementById('success');
+    const successMsg = document.getElementById('success-msg');
+    const resetBtn = document.getElementById('reset-btn');
+
+    // デフォルト日付を当日に
+    (function () {
+      const d = new Date();
+      const iso = d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+      document.getElementById('date').value = iso;
+    })();
+
+    // 登録者名の記憶
+    const savedRegistrar = localStorage.getItem('uys.schedule.registrar');
+    if (savedRegistrar) document.getElementById('registrar').value = savedRegistrar;
+
+    form.addEventListener('submit', onSubmit);
+    resetBtn.addEventListener('click', resetToForm);
+
+    function onSubmit(e) {
+      e.preventDefault();
+      hideError();
+
+      const teams = Array.from(document.querySelectorAll('input[name="team"]:checked'))
+        .map(function (el) { return el.value; });
+      const date = document.getElementById('date').value;
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+      const title = document.getElementById('title').value.trim();
+      const location = document.getElementById('location').value.trim();
+      const memo = document.getElementById('memo').value.trim();
+      const registrar = document.getElementById('registrar').value.trim();
+
+      const err = validate({ date, title, startTime, endTime });
+      if (err) return showError(err);
+
+      if (registrar) localStorage.setItem('uys.schedule.registrar', registrar);
+
+      setSubmitting(true);
+
+      const body = JSON.stringify({
+        action: 'createSchedule',
+        payload: { teams, date, startTime, endTime, title, location, memo, registrar },
+      });
+
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: body,
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          setSubmitting(false);
+          if (!res.ok) throw new Error(res.error || '登録に失敗しました');
+          showSuccess(title, date);
+        })
+        .catch(function (err) {
+          setSubmitting(false);
+          showError(err.message || '登録に失敗しました');
+        });
+    }
+
+    function validate(v) {
+      if (!v.date) return '日付を入力してください。';
+      if (!v.title) return 'タイトルを入力してください。';
+      if (v.startTime && v.endTime && v.startTime >= v.endTime) {
+        return '終了時刻は開始時刻より後にしてください。';
+      }
+      return null;
+    }
+
+    function setSubmitting(s) {
+      submitBtn.disabled = s;
+      submitBtn.textContent = s ? '送信中…' : '登録する';
+    }
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.hidden = false;
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function hideError() {
+      errorBox.hidden = true;
+      errorBox.textContent = '';
+    }
+
+    function showSuccess(title, date) {
+      successMsg.textContent = date + ' 「' + title + '」を登録しました。';
+      form.hidden = true;
+      success.hidden = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetToForm() {
+      form.reset();
+      // デフォルト日付再設定
+      const d = new Date();
+      document.getElementById('date').value = d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+      // 登録者は残す
+      const r = localStorage.getItem('uys.schedule.registrar');
+      if (r) document.getElementById('registrar').value = r;
+      hideError();
+      form.hidden = false;
+      success.hidden = true;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
