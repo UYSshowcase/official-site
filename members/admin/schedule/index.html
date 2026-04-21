@@ -139,25 +139,76 @@
 
     textarea { resize: vertical; }
 
-    /* 時刻セレクト */
-    .time-selects {
+    /* 時刻スライダー */
+    .time-row {
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-bottom: 8px;
     }
-    .time-selects select {
-      flex: 1;
-      text-align: center;
+    .time-row:last-child { margin-bottom: 0; }
+    .time-label {
+      width: 44px;
+      font-size: 0.85rem;
+      color: var(--sub);
+      letter-spacing: 0.08em;
     }
-    .time-selects .sep {
+    .time-step {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      border: 1px solid rgba(212, 181, 109, 0.3);
+      background: #0a080e;
       color: var(--gold);
-      font-size: 1.1rem;
+      font-size: 0.85rem;
       font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      -webkit-user-select: none;
+      user-select: none;
     }
-    .time-range-sep {
-      color: var(--muted);
+    .time-step:active {
+      background: var(--gold-soft);
+    }
+    .time-display {
+      flex: 1;
+      min-width: 0;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a080e;
+      border: 1px solid rgba(212, 181, 109, 0.25);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1.15rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+      touch-action: pan-x;
+      cursor: ns-resize;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .time-display.empty {
+      color: var(--sub);
       font-size: 0.9rem;
-      padding: 0 4px;
+      letter-spacing: 0.05em;
+    }
+    .time-display.dragging {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212, 181, 109, 0.18);
+    }
+    .time-clear {
+      width: 36px;
+      height: 44px;
+      border-radius: 8px;
+      border: 1px solid rgba(212, 181, 109, 0.2);
+      background: transparent;
+      color: var(--sub);
+      font-size: 1rem;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
     /* カスタムカレンダー */
@@ -394,24 +445,23 @@
 
       <div class="field">
         <label>時刻</label>
-        <div class="time-selects">
-          <select id="startHour" aria-label="開始時">
-            <option value="">--</option>
-          </select>
-          <span class="sep">:</span>
-          <select id="startMinute" aria-label="開始分">
-            <option value="">--</option>
-          </select>
-          <span class="time-range-sep">〜</span>
-          <select id="endHour" aria-label="終了時">
-            <option value="">--</option>
-          </select>
-          <span class="sep">:</span>
-          <select id="endMinute" aria-label="終了分">
-            <option value="">--</option>
-          </select>
+        <div class="time-row">
+          <span class="time-label">開始</span>
+          <button type="button" class="time-step" data-target="start" data-step="-15" aria-label="15分前">−</button>
+          <div class="time-display" id="startDisplay" data-target="start" tabindex="0">19:00</div>
+          <button type="button" class="time-step" data-target="start" data-step="15" aria-label="15分後">+</button>
+          <button type="button" class="time-clear" data-target="start" aria-label="クリア">×</button>
         </div>
-        <p class="hint">空欄の場合は「終日」として表示されます。</p>
+        <div class="time-row">
+          <span class="time-label">終了</span>
+          <button type="button" class="time-step" data-target="end" data-step="-15" aria-label="15分前">−</button>
+          <div class="time-display empty" id="endDisplay" data-target="end" tabindex="0">未設定</div>
+          <button type="button" class="time-step" data-target="end" data-step="15" aria-label="15分後">+</button>
+          <button type="button" class="time-clear" data-target="end" aria-label="クリア">×</button>
+        </div>
+        <input type="hidden" id="startTime" name="startTime" value="19:00">
+        <input type="hidden" id="endTime" name="endTime" value="">
+        <p class="hint">±ボタン or ドラッグ(上下)で15分単位で調整。×で未設定に。終日は両方未設定。</p>
       </div>
 
       <div class="field">
@@ -547,34 +597,118 @@
     document.getElementById('date').value = calState.selected;
     renderCalendar();
 
-    // --- 時刻セレクト ---
-    (function () {
-      const hSels = [document.getElementById('startHour'), document.getElementById('endHour')];
-      const mSels = [document.getElementById('startMinute'), document.getElementById('endMinute')];
-      for (let h = 0; h <= 23; h++) {
-        const hh = String(h).padStart(2, '0');
-        hSels.forEach(function (sel) {
-          const o = document.createElement('option');
-          o.value = hh; o.textContent = hh;
-          sel.appendChild(o);
-        });
-      }
-      for (let m = 0; m < 60; m += 5) {
-        const mm = String(m).padStart(2, '0');
-        mSels.forEach(function (sel) {
-          const o = document.createElement('option');
-          o.value = mm; o.textContent = mm;
-          sel.appendChild(o);
-        });
-      }
-    })();
-    function readTime(hId, mId) {
-      const h = document.getElementById(hId).value;
-      const m = document.getElementById(mId).value;
-      if (!h && !m) return '';
-      if (h && m) return h + ':' + m;
-      return ''; // どちらか欠けていたら未設定扱い
+    // --- 時刻スライダー ---
+    const DEFAULT_START_MIN = 19 * 60; // 19:00
+    const STEP = 15;
+    const MAX_MIN = 23 * 60 + 45;
+    const timeState = { start: DEFAULT_START_MIN, end: null };
+
+    function formatMin(m) {
+      return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
     }
+    function renderTime(target) {
+      const disp = document.getElementById(target + 'Display');
+      const hid = document.getElementById(target + 'Time');
+      const v = timeState[target];
+      if (v == null) {
+        disp.textContent = '未設定';
+        disp.classList.add('empty');
+        hid.value = '';
+      } else {
+        disp.textContent = formatMin(v);
+        disp.classList.remove('empty');
+        hid.value = formatMin(v);
+      }
+    }
+    function stepTime(target, delta) {
+      let cur = timeState[target];
+      if (cur == null) cur = target === 'start' ? DEFAULT_START_MIN : (timeState.start != null ? timeState.start + 120 : DEFAULT_START_MIN + 120);
+      let next = cur + delta;
+      if (next < 0) next = 0;
+      if (next > MAX_MIN) next = MAX_MIN;
+      timeState[target] = next;
+      renderTime(target);
+    }
+    function clearTime(target) {
+      timeState[target] = null;
+      renderTime(target);
+    }
+
+    document.querySelectorAll('.time-step').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        stepTime(btn.dataset.target, Number(btn.dataset.step));
+      });
+    });
+    document.querySelectorAll('.time-clear').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        clearTime(btn.dataset.target);
+      });
+    });
+
+    // ドラッグ/スワイプで調整 (上下=±15分/20px、左右=±15分/20px どちらでも)
+    document.querySelectorAll('.time-display').forEach(function (disp) {
+      const target = disp.dataset.target;
+      let startY = null, startX = null, startVal = null, moved = false;
+      function onStart(y, x) {
+        if (timeState[target] == null) {
+          timeState[target] = target === 'start' ? DEFAULT_START_MIN : DEFAULT_START_MIN + 120;
+          renderTime(target);
+        }
+        startY = y; startX = x;
+        startVal = timeState[target];
+        moved = false;
+        disp.classList.add('dragging');
+      }
+      function onMove(y, x) {
+        if (startY == null) return;
+        const dy = startY - y;
+        const dx = x - startX;
+        const delta = Math.abs(dy) > Math.abs(dx) ? dy : dx;
+        const steps = Math.round(delta / 20);
+        if (steps === 0) return;
+        moved = true;
+        let next = startVal + steps * STEP;
+        if (next < 0) next = 0;
+        if (next > MAX_MIN) next = MAX_MIN;
+        timeState[target] = next;
+        renderTime(target);
+      }
+      function onEnd() {
+        startY = null; startX = null;
+        disp.classList.remove('dragging');
+      }
+      disp.addEventListener('touchstart', function (e) {
+        const t = e.touches[0]; onStart(t.clientY, t.clientX);
+      }, { passive: true });
+      disp.addEventListener('touchmove', function (e) {
+        const t = e.touches[0]; onMove(t.clientY, t.clientX);
+      }, { passive: true });
+      disp.addEventListener('touchend', onEnd);
+      disp.addEventListener('mousedown', function (e) {
+        onStart(e.clientY, e.clientX);
+        const mm = function (ev) { onMove(ev.clientY, ev.clientX); };
+        const mu = function () {
+          onEnd();
+          document.removeEventListener('mousemove', mm);
+          document.removeEventListener('mouseup', mu);
+        };
+        document.addEventListener('mousemove', mm);
+        document.addEventListener('mouseup', mu);
+      });
+      // ホイール対応
+      disp.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        stepTime(target, e.deltaY < 0 ? STEP : -STEP);
+      }, { passive: false });
+      // キーボード
+      disp.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); stepTime(target, STEP); }
+        else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); stepTime(target, -STEP); }
+      });
+    });
+
+    renderTime('start');
+    renderTime('end');
 
     // 登録者名の記憶
     const savedRegistrar = localStorage.getItem('uys.schedule.registrar');
@@ -590,8 +724,8 @@
       const teams = Array.from(document.querySelectorAll('input[name="team"]:checked'))
         .map(function (el) { return el.value; });
       const date = document.getElementById('date').value;
-      const startTime = readTime('startHour', 'startMinute');
-      const endTime = readTime('endHour', 'endMinute');
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
       const title = document.getElementById('title').value.trim();
       const location = document.getElementById('location').value.trim();
       const memo = document.getElementById('memo').value.trim();
@@ -666,10 +800,11 @@
       calState.selected = toISODate(today);
       document.getElementById('date').value = calState.selected;
       renderCalendar();
-      // 時刻セレクトを空に
-      ['startHour', 'startMinute', 'endHour', 'endMinute'].forEach(function (id) {
-        document.getElementById(id).value = '';
-      });
+      // 時刻をデフォルトに戻す
+      timeState.start = DEFAULT_START_MIN;
+      timeState.end = null;
+      renderTime('start');
+      renderTime('end');
       // 登録者は残す
       const r = localStorage.getItem('uys.schedule.registrar');
       if (r) document.getElementById('registrar').value = r;
